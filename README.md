@@ -1,0 +1,18 @@
+- `backend/`
+  - `server.js` - Express server and Firebase Admin SDK initialization.
+  - `package.json` - backend dependencies and startup scripts.
+  - `auth/`
+    - `routes.js` - authentication API routes (`/auth/google`, `/auth/email-signin`, `/auth/me`).
+    - `middleware.js` - token verification and request sanitization logic.
+  - `.env` (not committed) - backend environment variables for Firebase credentials, port, and allowed frontend origin.
+
+- `frontend/`
+  - `package.json` - frontend dependencies and Vite scripts.
+  - `vite.config.js` - Vite configuration for the React app.
+  - `index.html` - app shell.
+  - `src/`
+    - `main.jsx` - app entry point.
+    - `App.jsx` - root React component.
+    - `firebase.js` - Firebase client SDK initialization and auth helpers.
+    - `components/AuthPage.jsx` - login / sign-up UI and backend verification flow.
+    - `App.css`, `index.css`, `components/AuthPage.css` - app styling.
