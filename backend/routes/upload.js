@@ -5,10 +5,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
+// Core Middlewares & Utilities
 import upload from '../middleware/upload.js'; 
 import FileSanitizer from '../utils/sanitizer.js';
 import { verifyToken } from '../auth/middleware.js'; 
-import DockerSandboxManager from '../services/sandbox.js';
+
+// Imported our centralized FIFO Scheduler Queue
+import queueInstance from '../services/queue.js'; 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,11 +20,17 @@ const router = express.Router();
 
 /**
  * POST /api/v1/submissions/submit
- * Accepts compiled binary, sanitizes it, and spawns container with dynamic port mapping.
+ * 
+ * Secure API Endpoint to:
+ * 1. Verify user authenticity (JWT token check).
+ * 2. Accept and validate the binary upload payload size and extension [2].
+ * 3. Sanitize file name against path-traversal attacks.
+ * 4. Safely enqueue the job to the FIFO scheduler to run tests isolated [1, 2].
  */
 router.post('/submit', verifyToken, upload.single('submission_file'), async (req, res) => {
   let tempPath;
   try {
+    // 1. Verify file exists in request payload
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'No binary file uploaded.' });
     }
@@ -30,9 +39,10 @@ router.post('/submit', verifyToken, upload.single('submission_file'), async (req
     let safeName;
 
     try {
-      // 1. Sanitize file name
+      // 2. Strict filename sanitization
       safeName = FileSanitizer.sanitizeFilename(req.file.originalname);
     } catch (sanitizationError) {
+      // Instantly delete un-sanitized temp file to avoid storage fill-up attacks
       if (fs.existsSync(tempPath)) {
         fs.unlinkSync(tempPath);
       }
@@ -41,33 +51,24 @@ router.post('/submit', verifyToken, upload.single('submission_file'), async (req
 
     const finalPath = path.join(__dirname, '..', 'uploads', safeName);
 
-    // 2. Save binary permanently inside uploads folder
+    // 3. Move file from temp disk store to permanent uploads path
     fs.renameSync(tempPath, finalPath);
 
     const teamId = req.user?.uid || 'anonymous';
     const submissionId = Date.now().toString(); 
 
-    // 3. TRIGGER DOCKER SANDBOX (Non-blocking background run)
-    DockerSandboxManager.runContainer(teamId, submissionId, finalPath)
-      .then(async (sandboxResult) => {
-        console.log(`[SYSTEM] Testing started on sandbox: ${sandboxResult.containerName}`);
-        console.log(`[SYSTEM] Live Endpoint active at: http://localhost:${sandboxResult.mappedPort}`);
-        
-        // TODO: Is endpoint par bot fleet requests fire karega metrics capture karne ke liye.
-        
-        // Auto-cleanup after evaluation (currently set to 20 seconds for basic tests)
-        setTimeout(async () => {
-          await DockerSandboxManager.stopAndCleanup(sandboxResult.containerName);
-        }, 20000); 
-      })
-      .catch((sandboxError) => {
-        console.error(`[CRITICAL ERROR] Failed to run binary inside sandbox:`, sandboxError.message);
-      });
+    // 4. ENQUEUE BENCHMARK JOB IN FIFO SCHEDULER
+    // Instantly returns without blocking the main event-driven thread [2]
+    queueInstance.enqueue({
+      teamId: teamId,
+      submissionId: submissionId,
+      binaryPath: finalPath
+    });
 
-    // Fast, responsive JSON payload sent to user
+    // Fast, responsive payload returned to the frontend
     return res.status(201).json({
       success: true,
-      message: 'Binary successfully submitted, verified and spawned in a secure Sandbox.',
+      message: 'Binary successfully submitted, verified, and placed in the evaluation queue.',
       payload: {
         filename: safeName,
         teamId: teamId,
@@ -76,7 +77,8 @@ router.post('/submit', verifyToken, upload.single('submission_file'), async (req
     });
 
   } catch (error) {
-    console.error('Upload & Spawning route error:', error);
+    console.error('Upload & Queue scheduling route error:', error);
+    // Cleanup residual files on unexpected runtime failures
     if (tempPath && fs.existsSync(tempPath)) {
       fs.unlinkSync(tempPath);
     }
@@ -84,7 +86,7 @@ router.post('/submit', verifyToken, upload.single('submission_file'), async (req
   }
 });
 
-// Multer error handling middleware
+// Multer error handling middleware for graceful API error responses
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ success: false, error: `Upload error: ${err.message}` });
