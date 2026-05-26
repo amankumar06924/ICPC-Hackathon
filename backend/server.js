@@ -8,6 +8,7 @@ import { readFileSync, existsSync } from "fs";
 // Routes Imports
 import authRoutes from "./auth/routes.js";
 import uploadRoutes from "./routes/upload.js"; // Note: Hum router import kar rahe hain (.js extension ke sath)
+import streamRoutes from "./routes/stream.js"; // SSE routes for telemetry streaming
 
 // ── Firebase Admin SDK init ─────────────────────────────────────────
 const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
@@ -74,6 +75,9 @@ app.use("/auth", authRoutes);
 // File Upload Submissions Route (/api/v1/submissions/submit)
 // Note: Is ek line se routes/upload.js ke saare internal routes (jaise "/submit") automatically bind ho jayenge.
 app.use("/api/v1/submissions", uploadRoutes);
+
+// SSE Routes for Telemetry Streaming
+app.use("/api/v1/submissions", streamRoutes);
 
 // Base route for server health check
 app.get("/", (_req, res) => {
