@@ -3,7 +3,6 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import './DashboardPage.css';
 
-// ── CUSTOM HIGH-PERFORMANCE SVG CHART COMPONENT (Zero-Dependency) ──
 function CustomTelemetryChart({ data }) {
   if (data.length < 2) {
     return (
@@ -17,50 +16,40 @@ function CustomTelemetryChart({ data }) {
   const width = 800;
   const height = 250;
   const padding = 40;
-
-  // Find max and min values dynamically to scale the chart graph
   const tpsValues = data.map((d) => d.tps);
   const maxTps = Math.max(...tpsValues, 45000);
   const minTps = Math.min(...tpsValues, 20000);
   const tpsRange = maxTps - minTps || 1;
 
-  // Map data coordinates to SVG viewBox space
   const points = data.map((d, index) => {
     const x = padding + (index / (data.length - 1)) * (width - 2 * padding);
     const y = height - padding - ((d.tps - minTps) / tpsRange) * (height - 2 * padding);
     return { x, y, tps: d.tps, label: d.time };
   });
 
-  // Generate SVG Path line coordinates
   const pathD = points.reduce((acc, p, i) => {
     return i === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
   }, "");
 
-  // Generate Glowing Area fill under the line path
   const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="svg-chart-element">
       <defs>
-        {/* Soft violet glowing gradient beneath the throughput line */}
         <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.4" />
           <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.0" />
         </linearGradient>
       </defs>
 
-      {/* Grid horizontal guidelines */}
       <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#333" strokeWidth="1" />
       <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="#222" strokeWidth="1" strokeDasharray="4,4" />
       <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="#222" strokeWidth="1" strokeDasharray="4,4" />
 
-      {/* Glowing Area Fill path */}
       <path d={areaD} fill="url(#chartGlow)" />
 
-      {/* Main performance line */}
       <path d={pathD} fill="none" stroke="#4f46e5" strokeWidth="3" strokeLinecap="round" />
 
-      {/* Real-time interactive coordinates dots */}
       {points.map((p, i) => (
         <g key={i} className="chart-dot-group">
           <circle cx={p.x} cy={p.y} r="4" fill="#818cf8" stroke="#121212" strokeWidth="1.5" />
@@ -69,12 +58,10 @@ function CustomTelemetryChart({ data }) {
         </g>
       ))}
 
-      {/* Vertical Axis labels (Speed Indicators) */}
       <text x={padding - 10} y={padding + 5} fill="#666" fontSize="10" textAnchor="end">{Math.floor(maxTps / 1000)}k</text>
       <text x={padding - 10} y={height / 2 + 5} fill="#666" fontSize="10" textAnchor="end">{Math.floor((maxTps + minTps) / 2000)}k</text>
       <text x={padding - 10} y={height - padding + 5} fill="#666" fontSize="10" textAnchor="end">{Math.floor(minTps / 1000)}k</text>
 
-      {/* Horizontal Axis Time labels */}
       <text x={padding} y={height - padding + 20} fill="#666" fontSize="10" textAnchor="middle">Start</text>
       <text x={width - padding} y={height - padding + 20} fill="#666" fontSize="10" textAnchor="middle">Active</text>
     </svg>
@@ -86,7 +73,6 @@ export default function DashboardPage({ activeTest, onBackToUpload }) {
   const [isCompleted, setIsCompleted] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('CONNECTING'); 
   
-  // Real-time chart data stream state
   const [telemetryData, setTelemetryData] = useState([]);
   const [currentMetrics, setCurrentMetrics] = useState({ tps: 0, p50: 0, p90: 0, p99: 0 });
   const [logs, setLogs] = useState([]);
