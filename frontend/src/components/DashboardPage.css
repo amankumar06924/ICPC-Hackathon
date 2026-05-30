@@ -384,3 +384,27 @@
     padding: 10px;
   }
 }
+
+/* Add inside DashboardPage.css */
+.view-leaderboard-btn {
+  background-color: transparent;
+  color: #818cf8;
+  border: 1px solid #4f46e5;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.view-leaderboard-btn:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+@media (max-width: 768px) {
+  /* Ensure the new button scales correctly on mobile */
+  .view-leaderboard-btn {
+    width: 100%;
+    padding: 14px;
+  }
+}

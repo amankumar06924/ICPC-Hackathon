@@ -101,7 +101,9 @@ app.get("/", (_req, res) => {
   });
 });
 
-app.use("/api",metricsRouter)
+// app.use("/api",metricsRouter)
+// change this to /api/v1/submissions to make it more consistent with the rest of the API versioning and structure
+app.use('/api/v1/submissions', metricsRouter);
 
 // 3. LISTEN TO PORT
 app.listen(PORT, () => {

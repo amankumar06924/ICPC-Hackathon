@@ -5,6 +5,8 @@ import AuthPage from './components/AuthPage';
 import UploadPage from './components/UploadPage';
 import DashboardPage from './components/DashboardPage';
 import './App.css';
+import LeaderboardPage from './components/LeaderboardPage';
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -23,7 +25,7 @@ function App() {
         try {
           const idToken = await currentUser.getIdToken();
           setToken(idToken);
-          setCurrentView('UPLOAD'); // If already logged in, redirect directly to Upload [2]
+          setCurrentView('LANDING'); // If already logged in, redirect directly to Upload [2]
         } catch (error) {
           console.error("Error fetching token:", error);
         }
@@ -74,12 +76,18 @@ function App() {
     <div className="app-container">
       {/* Dynamic Navbar */}
       <nav className="main-navbar">
-        <div className="brand-title" onClick={() => user ? setCurrentView('UPLOAD') : setCurrentView('LANDING')} style={{cursor: 'pointer'}}>
+        <div className="brand-title" onClick={() => user ? setCurrentView('LANDING') : setCurrentView('LANDING')} style={{cursor: 'pointer'}}>
           IICPC Benchmark 2026
         </div>
         <div className="nav-profile">
           {user ? (
             <>
+             <span 
+                onClick={() => setCurrentView('LEADERBOARD')} 
+                style={{cursor: 'pointer', marginRight: '20px', fontSize: '13px', color: currentView === 'LEADERBOARD' ? '#818cf8' : '#aaa'}}
+              >
+                Leaderboard
+              </span>
               <span className="user-email">{user.email}</span>
               <button onClick={handleLogout} className="signout-button">Sign Out</button>
             </>
@@ -112,7 +120,7 @@ function App() {
                 <button onClick={handleStartTestingClick} className="cta-primary">
                   Run Stress Test Suite
                 </button>
-                <button onClick={() => window.open('https://github.com', '_blank')} className="cta-secondary">
+                <button onClick={() => window.open('https://github.com/ASV-Group/IICPC-Hackathon')} className="cta-secondary">
                   Documentation
                 </button>
               </div>
@@ -153,6 +161,12 @@ function App() {
             activeTest={activeTest} 
             userToken={token}
             onBackToUpload={() => setCurrentView('UPLOAD')} 
+            onViewLeaderboard={() => setCurrentView('LEADERBOARD')}
+          />
+        )}
+        {currentView==='LEADERBOARD'&&(
+          <LeaderboardPage
+          onBackToUpload={()=>setCurrentView('UPLOAD')}
           />
         )}
       </main>

@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import './DashboardPage.css';
 
+// ── CUSTOM HIGH-PERFORMANCE SVG CHART COMPONENT (Zero-Dependency) ──
 function CustomTelemetryChart({ data }) {
   if (data.length < 2) {
     return (
@@ -68,7 +69,8 @@ function CustomTelemetryChart({ data }) {
   );
 }
 
-export default function DashboardPage({ activeTest, onBackToUpload }) {
+// FIX 1: Added 'onViewLeaderboard' prop in function arguments
+export default function DashboardPage({ activeTest, onBackToUpload, onViewLeaderboard }) {
   const [progress, setProgress] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('CONNECTING'); 
@@ -260,6 +262,10 @@ export default function DashboardPage({ activeTest, onBackToUpload }) {
             <div className="action-buttons">
               <button onClick={handleDownloadPDF} className="download-pdf-btn">
                 Download PDF Report
+              </button>
+              {/* FIX 2: Added View Leaderboard action button */}
+              <button onClick={onViewLeaderboard} className="view-leaderboard-btn">
+                View Leaderboard
               </button>
               <button onClick={onBackToUpload} className="back-btn">
                 Run Another Test
