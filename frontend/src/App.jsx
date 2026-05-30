@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from './firebase'; 
-import AuthPage from './components/AuthPage';
-import UploadPage from './components/UploadPage';
-import DashboardPage from './components/DashboardPage';
-import './App.css';
-import LeaderboardPage from './components/LeaderboardPage';
-
+import React, { useState, useEffect } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "./firebase";
+import AuthPage from "./components/AuthPage";
+import UploadPage from "./components/UploadPage";
+import DashboardPage from "./components/DashboardPage";
+import "./App.css";
+import LeaderboardPage from "./components/LeaderboardPage";
 
 function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Navigation State Management: 'LANDING' | 'AUTH' | 'UPLOAD' | 'DASHBOARD'
-  const [currentView, setCurrentView] = useState('LANDING');
-  const [activeTest, setActiveTest] = useState(null); 
+  const [currentView, setCurrentView] = useState("LANDING");
+  const [activeTest, setActiveTest] = useState(null);
 
   useEffect(() => {
     // Listen to Firebase Auth State changes
@@ -25,14 +24,14 @@ function App() {
         try {
           const idToken = await currentUser.getIdToken();
           setToken(idToken);
-          setCurrentView('LANDING'); // If already logged in, redirect directly to Upload [2]
+          setCurrentView("LANDING"); // If already logged in, redirect directly to Upload [2]
         } catch (error) {
           console.error("Error fetching token:", error);
         }
       } else {
         setUser(null);
         setToken(null);
-        setCurrentView('LANDING'); // Show Hero landing page by default
+        setCurrentView("LANDING"); // Show Hero landing page by default
       }
       setLoading(false);
     });
@@ -41,14 +40,14 @@ function App() {
   }, []);
 
   const handleUploadSuccess = (payload) => {
-    setActiveTest(payload); 
-    setCurrentView('DASHBOARD'); 
+    setActiveTest(payload);
+    setCurrentView("DASHBOARD");
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setCurrentView('LANDING');
+      setCurrentView("LANDING");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -57,9 +56,9 @@ function App() {
   // Triggered when clicking CTA buttons on Landing Hero section
   const handleStartTestingClick = () => {
     if (user) {
-      setCurrentView('UPLOAD'); // Redirect to Upload directly [2]
+      setCurrentView("UPLOAD"); // Redirect to Upload directly [2]
     } else {
-      setCurrentView('AUTH'); // Prompt Login first [2]
+      setCurrentView("AUTH"); // Prompt Login first [2]
     }
   };
 
@@ -76,24 +75,40 @@ function App() {
     <div className="app-container">
       {/* Dynamic Navbar */}
       <nav className="main-navbar">
-        <div className="brand-title" onClick={() => user ? setCurrentView('LANDING') : setCurrentView('LANDING')} style={{cursor: 'pointer'}}>
+        <div
+          className="brand-title"
+          onClick={() =>
+            user ? setCurrentView("LANDING") : setCurrentView("LANDING")
+          }
+          style={{ cursor: "pointer" }}
+        >
           IICPC Benchmark 2026
         </div>
         <div className="nav-profile">
           {user ? (
             <>
-             <span 
-                onClick={() => setCurrentView('LEADERBOARD')} 
-                style={{cursor: 'pointer', marginRight: '20px', fontSize: '13px', color: currentView === 'LEADERBOARD' ? '#818cf8' : '#aaa'}}
+              <span
+                onClick={() => setCurrentView("LEADERBOARD")}
+                style={{
+                  cursor: "pointer",
+                  marginRight: "20px",
+                  fontSize: "13px",
+                  color: currentView === "LEADERBOARD" ? "#818cf8" : "#aaa",
+                }}
               >
                 Leaderboard
               </span>
               <span className="user-email">{user.email}</span>
-              <button onClick={handleLogout} className="signout-button">Sign Out</button>
+              <button onClick={handleLogout} className="signout-button">
+                Sign Out
+              </button>
             </>
           ) : (
-            currentView !== 'AUTH' && (
-              <button onClick={() => setCurrentView('AUTH')} className="login-nav-btn">
+            currentView !== "AUTH" && (
+              <button
+                onClick={() => setCurrentView("AUTH")}
+                className="login-nav-btn"
+              >
                 Sign In
               </button>
             )
@@ -103,24 +118,40 @@ function App() {
 
       <main className="content-area">
         {/* LANDING / HERO SECTION VIEW */}
-        {currentView === 'LANDING' && (
+        {currentView === "LANDING" && (
           <div className="hero-section">
+            <video autoPlay muted playsInline className="hero-video">
+              <source
+                src="/Firefly Prompt- A premium 3D motion graphics video designed for a website hero section background. A.mp4"
+                type="video/mp4"
+              />
+              Your browser does not support the video tag.
+            </video>
             <div className="hero-content">
-              <span className="badge-new">IICPC SUMMER HACKATHON 2026</span>
+              {/* <span className="badge-new">IICPC SUMMER HACKATHON 2026</span> */}
               <h1 className="hero-title">
                 Distributed Benchmarking & <br />
                 <span className="gradient-text">Hosting Platform</span>
               </h1>
               <p className="hero-subtitle">
-                Evaluate contestant-submitted trading infrastructure under extreme market volatility. 
-                Secure sandboxing, dynamic load generation, and live telemetry ingestion [1].
+                Evaluate contestant-submitted trading infrastructure under
+                extreme market volatility. Secure sandboxing, dynamic load
+                generation, and live telemetry ingestion [1].
               </p>
-              
+
               <div className="hero-cta-buttons">
-                <button onClick={handleStartTestingClick} className="cta-primary">
+                <button
+                  onClick={handleStartTestingClick}
+                  className="cta-primary"
+                >
                   Run Stress Test Suite
                 </button>
-                <button onClick={() => window.open('https://github.com/ASV-Group/IICPC-Hackathon')} className="cta-secondary">
+                <button
+                  onClick={() =>
+                    window.open("https://github.com/ASV-Group/IICPC-Hackathon")
+                  }
+                  className="cta-secondary"
+                >
                   Documentation
                 </button>
               </div>
@@ -131,43 +162,47 @@ function App() {
               <div className="feature-card">
                 <div className="feature-icon">🛡️</div>
                 <h3>Secure Sandboxing</h3>
-                <p>Strict CPU pinning and memory limits inside hardened isolation containers [1].</p>
+                <p>
+                  Strict CPU pinning and memory limits inside hardened isolation
+                  containers [1].
+                </p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">🚀</div>
                 <h3>Distributed Bot Fleet</h3>
-                <p>Simulate volatile market movements with high-velocity concurrent orders [1].</p>
+                <p>
+                  Simulate volatile market movements with high-velocity
+                  concurrent orders [1].
+                </p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">📊</div>
                 <h3>Live Telemetry</h3>
-                <p>Track throughput limits, correctness priority, and latency metrics in real-time [1].</p>
+                <p>
+                  Track throughput limits, correctness priority, and latency
+                  metrics in real-time [1].
+                </p>
               </div>
             </div>
           </div>
         )}
 
-        {currentView === 'AUTH' && <AuthPage />}
-        
-        {currentView === 'UPLOAD' && (
-          <UploadPage 
-            userToken={token} 
-            onUploadSuccess={handleUploadSuccess} 
-          />
+        {currentView === "AUTH" && <AuthPage />}
+
+        {currentView === "UPLOAD" && (
+          <UploadPage userToken={token} onUploadSuccess={handleUploadSuccess} />
         )}
-        
-        {currentView === 'DASHBOARD' && activeTest && (
-          <DashboardPage 
-            activeTest={activeTest} 
+
+        {currentView === "DASHBOARD" && activeTest && (
+          <DashboardPage
+            activeTest={activeTest}
             userToken={token}
-            onBackToUpload={() => setCurrentView('UPLOAD')} 
-            onViewLeaderboard={() => setCurrentView('LEADERBOARD')}
+            onBackToUpload={() => setCurrentView("UPLOAD")}
+            onViewLeaderboard={() => setCurrentView("LEADERBOARD")}
           />
         )}
-        {currentView==='LEADERBOARD'&&(
-          <LeaderboardPage
-          onBackToUpload={()=>setCurrentView('UPLOAD')}
-          />
+        {currentView === "LEADERBOARD" && (
+          <LeaderboardPage onBackToUpload={() => setCurrentView("UPLOAD")} />
         )}
       </main>
     </div>
